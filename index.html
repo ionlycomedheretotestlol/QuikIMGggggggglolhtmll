@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuikIMG</title>
+<meta name="theme-color" content="#1a1a1a">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #1a1a1a;
+    --bg2: #222222;
+    --bg3: #2a2a2a;
+    --border: #333;
+    --accent: #d97757;
+    --accent2: #e8936e;
+    --text: #f0ede8;
+    --muted: #888;
+    --muted2: #555;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── HOME STATE ── */
+  #home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 2rem;
+    transition: all 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  .logo-mark {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 1.2rem;
+    animation: spinFloat 8s linear infinite;
+    transform-origin: center;
+  }
+  @keyframes spinFloat {
+    0%   { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.06); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.3rem;
+  }
+  .wordmark span { color: var(--accent); }
+
+  .tagline {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2.4rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    width: 100%;
+    max-width: 560px;
+    position: relative;
+  }
+
+  .search-bar {
+    width: 100%;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 0.85rem 3.6rem 0.85rem 1.2rem;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-bar::placeholder { color: var(--muted2); }
+  .search-bar:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(217,119,87,0.12);
+  }
+
+  .search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent);
+    border: none;
+    border-radius: 9px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+    color: white;
+  }
+  .search-btn:hover { background: var(--accent2); transform: translateY(-50%) scale(1.06); }
+  .search-btn:active { transform: translateY(-50%) scale(0.96); }
+  .search-btn svg { width: 16px; height: 16px; }
+
+  .hint {
+    font-size: 0.76rem;
+    color: var(--muted2);
+    margin-top: 1rem;
+    text-align: center;
+  }
+  .hint kbd {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  /* ── RESULTS PAGE ── */
+  #results-page {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.2rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .top-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .top-logo span { color: var(--accent); }
+
+  .top-search-wrap {
+    flex: 1;
+    max-width: 480px;
+    position: relative;
+  }
+
+  .top-search {
+    width: 100%;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 3rem 0.6rem 1rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .top-search::placeholder { color: var(--muted2); }
+  .top-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(217,119,87,0.12);
+  }
+
+  .top-search-btn {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent);
+    border: none;
+    border-radius: 7px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    color: white;
+  }
+  .top-search-btn:hover { background: var(--accent2); }
+  .top-search-btn svg { width: 14px; height: 14px; }
+
+  .refresh-btn {
+    flex-shrink: 0;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s, border-color 0.15s, transform 0.3s;
+  }
+  .refresh-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .refresh-btn.spinning svg { animation: spinOnce 0.5s ease; }
+  @keyframes spinOnce { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .refresh-btn svg { width: 16px; height: 16px; }
+
+  .result-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0.6rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .result-meta strong { color: var(--accent); font-weight: 500; }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .img-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    aspect-ratio: 1/1;
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+    animation: cardIn 0.35s ease forwards;
+  }
+  @keyframes cardIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .img-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .img-card:hover img { transform: scale(1.05); }
+
+  .img-card .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.25s;
+    display: flex;
+    align-items: flex-end;
+    padding: 8px;
+  }
+  .img-card:hover .overlay { opacity: 1; }
+
+  .img-type-badge {
+    font-size: 0.65rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(217,119,87,0.85);
+    color: white;
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* cog spin overlay on double tap */
+  .cog-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(26,26,26,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    border-radius: 10px;
+  }
+  .cog-overlay.active { opacity: 1; pointer-events: auto; }
+  .cog-overlay svg {
+    width: 36px;
+    height: 36px;
+    color: var(--accent);
+    animation: cogSpin 0.5s linear infinite;
+  }
+  .cog-overlay .cog-label {
+    position: absolute;
+    bottom: 12px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  @keyframes cogSpin { to { transform: rotate(360deg); } }
+
+  /* ── LOADING ── */
+  #loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .loader-ring {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── EMPTY / ERROR ── */
+  #msg-box {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 0.8rem;
+    text-align: center;
+  }
+  #msg-box .icon { font-size: 2.5rem; }
+  #msg-box .title { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 600; }
+  #msg-box .sub { font-size: 0.82rem; color: var(--muted); max-width: 280px; }
+
+  /* ── QUOTA CARD ── */
+  #quota-card {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 420px;
+    width: 90%;
+    margin: 3rem auto;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.6rem;
+  }
+  .quota-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .quota-title svg { color: var(--accent); }
+  .quota-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 0.7rem;
+  }
+  .quota-row strong { color: var(--text); }
+  .quota-bar-bg {
+    width: 100%;
+    height: 5px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .quota-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <svg class="logo-mark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="26" cy="26" r="4.5" fill="#d97757"/>
+    <line x1="26" y1="4" x2="26" y2="14" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="26" y1="38" x2="26" y2="48" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="4" y1="26" x2="14" y2="26" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="38" y1="26" x2="48" y2="26" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="10.1" y1="10.1" x2="17.2" y2="17.2" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="34.8" y1="34.8" x2="41.9" y2="41.9" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="41.9" y1="10.1" x2="34.8" y2="17.2" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="17.2" y1="34.8" x2="10.1" y2="41.9" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+  <div class="wordmark">Quik<span>IMG</span></div>
+  <div class="tagline">Exact-match image search. Fast, clean, yours.</div>
+  <div class="search-wrap">
+    <input class="search-bar" id="home-input" type="text" placeholder="Search for anything exactly..." autocomplete="off" spellcheck="false">
+    <button class="search-btn" id="home-btn" title="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </button>
+  </div>
+  <div class="hint">Type <kbd>-quo</kbd> to check your API quota</div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div id="results-page">
+  <div class="top-bar">
+    <div class="top-logo" id="back-home">Quik<span>IMG</span></div>
+    <div class="top-search-wrap">
+      <input class="top-search" id="top-input" type="text" autocomplete="off" spellcheck="false">
+      <button class="top-search-btn" id="top-btn" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+    </div>
+    <button class="refresh-btn" id="refresh-btn" title="Fresh results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="result-meta" id="result-meta" style="display:none"></div>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="loader-ring"></div>
+    <span>Searching…</span>
+  </div>
+
+  <!-- Msg box -->
+  <div id="msg-box">
+    <div class="icon" id="msg-icon">🔍</div>
+    <div class="title" id="msg-title">No results</div>
+    <div class="sub" id="msg-sub">Try a different search term.</div>
+  </div>
+
+  <!-- Quota card -->
+  <div id="quota-card">
+    <div class="quota-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+      </svg>
+      SerpAPI Quota
+    </div>
+    <div class="quota-row"><span>Plan searches used</span><strong id="q-used">—</strong></div>
+    <div class="quota-bar-bg"><div class="quota-bar-fill" id="q-bar" style="width:0%"></div></div>
+    <div class="quota-row"><span>Searches remaining</span><strong id="q-rem">—</strong></div>
+    <div class="quota-row"><span>Total limit</span><strong id="q-total">—</strong></div>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const API_KEY = 'f0b1924867c5120ad474a883e983b2dee94f0d94f649e7fe431c6e46c542956c';
+const PROXY   = 'https://serpapi.com/search.json';
+
+let currentQuery = '';
+let usedStartValues = [];
+let lastResults    = [];
+
+// ── UTILS ──────────────────────────────────────────────────────────
+function isWebP(url) {
+  return url && url.toLowerCase().includes('.webp');
+}
+
+async function urlToCanvas(url) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth || img.width;
+      c.height = img.naturalHeight || img.height;
+      c.getContext('2d').drawImage(img, 0, 0);
+      res(c);
+    };
+    img.onerror = rej;
+    img.src = url;
+  });
+}
+
+async function downloadAsPNG(src, filename) {
+  try {
+    const canvas = await urlToCanvas(src);
+    canvas.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, 'image/png');
+  } catch {
+    // fallback: just download original
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = filename;
+    a.target = '_blank';
+    a.click();
+  }
+}
+
+// ── DOUBLE-TAP / DOUBLE-CLICK ──────────────────────────────────────
+function addDoubleTap(el, cb) {
+  let last = 0;
+  el.addEventListener('click', e => {
+    const now = Date.now();
+    if (now - last < 350) cb(e);
+    last = now;
+  });
+}
+
+// ── SERPAPI CALL ───────────────────────────────────────────────────
+async function fetchImages(query, start = 0) {
+  const params = new URLSearchParams({
+    engine: 'google_images',
+    q: `"${query}"`,          // exact match
+    num: 10,
+    start,
+    api_key: API_KEY,
+    safe: 'active',
+    ijn: Math.floor(start / 10)
+  });
+  const r = await fetch(`${PROXY}?${params}`);
+  if (!r.ok) throw new Error(`API ${r.status}`);
+  return r.json();
+}
+
+async function fetchQuota() {
+  const r = await fetch(`${PROXY}?engine=google&q=test&api_key=${API_KEY}&num=1`);
+  const d = await r.json();
+  return d.search_metadata || {};
+}
+
+// ── RENDER GRID ────────────────────────────────────────────────────
+function renderGrid(images) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if (!images.length) { showMsg('🔍', 'No results', 'Try a different term.'); return; }
+
+  images.forEach((img, i) => {
+    const card = document.createElement('div');
+    card.className = 'img-card';
+    card.style.animationDelay = `${i * 40}ms`;
+
+    const webp = isWebP(img.original);
+    const typeLabel = webp ? 'WEBP → PNG' : (img.original?.split('.').pop()?.toUpperCase().slice(0,4) || 'IMG');
+
+    card.innerHTML = `
+      <img src="${img.thumbnail}" loading="lazy" alt="${img.title || ''}">
+      <div class="overlay">
+        <span class="img-type-badge">${typeLabel}</span>
+      </div>
+      <div class="cog-overlay" id="cog-${i}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06
+            a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09
+            A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83
+            l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+            A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83
+            l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09
+            a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83
+            l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+            a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="cog-label">Converting…</span>
+      </div>`;
+
+    addDoubleTap(card, async () => {
+      const cog = document.getElementById(`cog-${i}`);
+      cog.classList.add('active');
+      const src = img.original || img.thumbnail;
+      const base = (img.title || currentQuery).replace(/[^a-z0-9]/gi, '_').slice(0, 40) || 'image';
+      await downloadAsPNG(src, `${base}.png`);
+      setTimeout(() => cog.classList.remove('active'), 800);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// ── SHOW MSG ───────────────────────────────────────────────────────
+function showMsg(icon, title, sub) {
+  document.getElementById('msg-icon').textContent = icon;
+  document.getElementById('msg-title').textContent = title;
+  document.getElementById('msg-sub').textContent = sub;
+  document.getElementById('msg-box').style.display = 'flex';
+}
+
+// ── SEARCH FLOW ────────────────────────────────────────────────────
+async function search(query, forceRefresh = false) {
+  query = query.trim();
+  if (!query) return;
+  currentQuery = query;
+
+  // Show results page
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('results-page').style.display = 'flex';
+  document.getElementById('quota-card').style.display = 'none';
+  document.getElementById('msg-box').style.display = 'none';
+  document.getElementById('grid').innerHTML = '';
+  document.getElementById('result-meta').style.display = 'none';
+
+  // -quo special command
+  if (query === '-quo') {
+    document.getElementById('top-input').value = '-quo';
+    document.getElementById('loading').style.display = 'flex';
+    try {
+      const meta = await fetchQuota();
+      document.getElementById('loading').style.display = 'none';
+      showQuota(meta);
+    } catch (e) {
+      document.getElementById('loading').style.display = 'none';
+      showMsg('⚠️', 'Quota fetch failed', e.message);
+    }
+    return;
+  }
+
+  document.getElementById('top-input').value = query;
+
+  // pick a fresh start offset
+  let start = 0;
+  if (forceRefresh) {
+    let candidate;
+    let tries = 0;
+    do {
+      candidate = Math.floor(Math.random() * 9) * 10;
+      tries++;
+    } while (usedStartValues.includes(candidate) && tries < 20);
+    start = candidate;
+    usedStartValues.push(start);
+    if (usedStartValues.length > 15) usedStartValues = usedStartValues.slice(-8);
+  }
+
+  document.getElementById('loading').style.display = 'flex';
+
+  try {
+    const data = await fetchImages(query, start);
+    document.getElementById('loading').style.display = 'none';
+    const imgs = data.images_results || [];
+    lastResults = imgs;
+
+    const meta = document.getElementById('result-meta');
+    meta.style.display = 'block';
+    meta.innerHTML = `Showing <strong>${imgs.length}</strong> exact results for <strong>"${query}"</strong>`;
+
+    renderGrid(imgs);
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    showMsg('⚠️', 'Search failed', e.message);
+  }
+}
+
+// ── QUOTA DISPLAY ──────────────────────────────────────────────────
+function showQuota(meta) {
+  const card = document.getElementById('quota-card');
+  card.style.display = 'flex';
+
+  const used  = meta.searches_left !== undefined ? (100 - meta.searches_left) : '—';
+  const rem   = meta.searches_left ?? '—';
+  const total = typeof used === 'number' && typeof rem === 'number' ? used + rem : 100;
+  const pct   = total > 0 && typeof used === 'number' ? Math.round((used / total) * 100) : 0;
+
+  document.getElementById('q-used').textContent  = typeof used  === 'number' ? used  : '—';
+  document.getElementById('q-rem').textContent   = typeof rem   === 'number' ? rem   : '—';
+  document.getElementById('q-total').textContent = typeof total === 'number' ? total : '—';
+  setTimeout(() => { document.getElementById('q-bar').style.width = pct + '%'; }, 50);
+}
+
+// ── EVENTS ─────────────────────────────────────────────────────────
+function triggerSearch(forceRefresh = false) {
+  const q = document.getElementById('results-page').style.display !== 'none'
+    ? document.getElementById('top-input').value
+    : document.getElementById('home-input').value;
+  search(q, forceRefresh);
+}
+
+document.getElementById('home-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') search(e.target.value);
+});
+document.getElementById('home-btn').addEventListener('click', () => {
+  search(document.getElementById('home-input').value);
+});
+
+document.getElementById('top-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') search(e.target.value);
+});
+document.getElementById('top-btn').addEventListener('click', () => {
+  search(document.getElementById('top-input').value);
+});
+
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  setTimeout(() => btn.classList.remove('spinning'), 600);
+  search(document.getElementById('top-input').value, true);
+});
+
+document.getElementById('back-home').addEventListener('click', () => {
+  document.getElementById('results-page').style.display = 'none';
+  document.getElementById('home').style.display = 'flex';
+  document.getElementById('home-input').value = '';
+  document.getElementById('home-input').focus();
+});
+
+// focus on load
+window.addEventListener('load', () => {
+  document.getElementById('home-input').focus();
+});
+</script>
+</body>
+</html>
