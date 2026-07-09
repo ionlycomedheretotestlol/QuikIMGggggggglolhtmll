@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuikIMG</title>
+<meta name="theme-color" content="#1a1a1a">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #1a1a1a;
+    --bg2: #222222;
+    --bg3: #2a2a2a;
+    --border: #333;
+    --accent: #d97757;
+    --accent2: #e8936e;
+    --text: #f0ede8;
+    --muted: #888;
+    --muted2: #555;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ── HOME STATE ── */
+  #home {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 2rem;
+    transition: all 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  .logo-mark {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 1.2rem;
+    animation: spinFloat 8s linear infinite;
+    transform-origin: center;
+  }
+  @keyframes spinFloat {
+    0%   { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.06); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.3rem;
+  }
+  .wordmark span { color: var(--accent); }
+
+  .tagline {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2.4rem;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    width: 100%;
+    max-width: 560px;
+    position: relative;
+  }
+
+  .search-bar {
+    width: 100%;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 0.85rem 3.6rem 0.85rem 1.2rem;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-bar::placeholder { color: var(--muted2); }
+  .search-bar:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(217,119,87,0.12);
+  }
+
+  /* .search-btn styles defined in Ghoul system below */
+  .search-btn svg { width: 16px; height: 16px; }
+
+  .hint {
+    font-size: 0.76rem;
+    color: var(--muted2);
+    margin-top: 1rem;
+    text-align: center;
+  }
+  .hint kbd {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  /* ── RESULTS PAGE ── */
+  #results-page {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1.2rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .top-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .top-logo span { color: var(--accent); }
+
+  .top-search-wrap {
+    flex: 1;
+    max-width: 480px;
+    position: relative;
+  }
+
+  .top-search {
+    width: 100%;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 3rem 0.6rem 1rem;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .top-search::placeholder { color: var(--muted2); }
+  .top-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(217,119,87,0.12);
+  }
+
+  .top-search-btn {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent);
+    border: none;
+    border-radius: 7px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    color: white;
+  }
+  .top-search-btn:hover { background: var(--accent2); }
+  .top-search-btn svg { width: 14px; height: 14px; }
+
+  .refresh-btn {
+    flex-shrink: 0;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.15s, border-color 0.15s, transform 0.3s;
+  }
+  .refresh-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .refresh-btn.spinning svg { animation: spinOnce 0.5s ease; }
+  @keyframes spinOnce { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .refresh-btn svg { width: 16px; height: 16px; }
+
+  .result-meta {
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0.6rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .result-meta strong { color: var(--accent); font-weight: 500; }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .img-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    aspect-ratio: 1/1;
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+    animation: cardIn 0.35s ease forwards;
+  }
+  @keyframes cardIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .img-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .img-card:hover img { transform: scale(1.05); }
+
+  .img-card .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.25s;
+    display: flex;
+    align-items: flex-end;
+    padding: 8px;
+  }
+  .img-card:hover .overlay { opacity: 1; }
+
+  .img-type-badge {
+    font-size: 0.65rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: rgba(217,119,87,0.85);
+    color: white;
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* cog spin overlay on double tap */
+  .cog-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(26,26,26,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    border-radius: 10px;
+  }
+  .cog-overlay.active { opacity: 1; pointer-events: auto; }
+  .cog-overlay svg {
+    width: 36px;
+    height: 36px;
+    color: var(--accent);
+    animation: cogSpin 0.5s linear infinite;
+  }
+  .cog-overlay .cog-label {
+    position: absolute;
+    bottom: 12px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  @keyframes cogSpin { to { transform: rotate(360deg); } }
+
+  /* ── LOADING ── */
+  #loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .loader-ring {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── EMPTY / ERROR ── */
+  #msg-box {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 0.8rem;
+    text-align: center;
+  }
+  #msg-box .icon { font-size: 2.5rem; }
+  #msg-box .title { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 600; }
+  #msg-box .sub { font-size: 0.82rem; color: var(--muted); max-width: 280px; }
+
+  /* ── QUOTA CARD ── */
+  #quota-card {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 420px;
+    width: 90%;
+    margin: 3rem auto;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.6rem;
+  }
+  .quota-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .quota-title svg { color: var(--accent); }
+  .quota-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 0.7rem;
+  }
+  .quota-row strong { color: var(--text); }
+  .quota-bar-bg {
+    width: 100%;
+    height: 5px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .quota-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* ── GHOUL SYSTEM ──────────────────────────────────────────────── */
+
+  /* Swipe wrap spans the FULL input bar so you can drag anywhere across it */
+  .search-btn-wrap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    touch-action: none;
+    user-select: none;
+    pointer-events: none; /* transparent to clicks except the button + track */
+    border-radius: 14px;
+  }
+
+  /* Invisible drag-track that accepts swipe gestures across the whole bar */
+  .swipe-track {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    pointer-events: all;
+    cursor: ew-resize;
+    border-radius: 14px;
+    background: transparent;
+  }
+
+  /* Button re-anchored inside the full-width wrap */
+  .search-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--accent);
+    pointer-events: all;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    transition: background 0.15s;
+    will-change: transform;
+    z-index: 2;
+  }
+  .search-btn:hover { background: var(--accent2); }
+
+  /* Ghoul mode - no orange square, just the ghost floating */
+  .search-btn.ghoul-mode {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .search-btn.ghoul-mode:hover { filter: brightness(1.2); }
+
+  /* Drag in-progress */
+  .search-btn.dragging {
+    transition: none !important;
+    cursor: grabbing;
+  }
+
+  /* SVG icon inside button */
+  .search-btn .btn-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  .search-btn .btn-icon.hidden {
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+  }
+
+  /* Pixel Ghoul SVG */
+  .ghoul-sprite {
+    position: absolute;
+    inset: -2px;
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+    transform: scale(0.5) rotate(10deg);
+    transition: opacity 0.35s cubic-bezier(.4,0,.2,1), transform 0.35s cubic-bezier(.34,1.56,.64,1);
+    pointer-events: none;
+  }
+  .ghoul-sprite.visible {
+    opacity: 1;
+    transform: scale(1) rotate(-6deg);
+  }
+  /* Ghoul idle float */
+  @keyframes ghouFloat {
+    0%,100% { transform: scale(1) rotate(-6deg) translateY(0); }
+    50%      { transform: scale(1) rotate(-6deg) translateY(-2px); }
+  }
+  .ghoul-sprite.visible { animation: ghouFloat 2.2s ease-in-out infinite; }
+
+  /* Ghoul eyes blink */
+  @keyframes eyeBlink {
+    0%,90%,100% { transform: scaleY(1); }
+    95%          { transform: scaleY(0.08); }
+  }
+  .ghoul-eye { animation: eyeBlink 3.5s ease-in-out infinite; transform-origin: center; }
+  .ghoul-eye:nth-child(2) { animation-delay: 0.12s; }
+
+  /* Morphing placeholder shimmer */
+  @keyframes placeholderFade {
+    0%   { opacity: 0; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .placeholder-morph { animation: placeholderFade 0.32s cubic-bezier(.4,0,.2,1) forwards; }
+
+  /* Key input mode — search bar glows purple-ish */
+  .search-bar.key-mode {
+    border-color: #9b7fd4 !important;
+    box-shadow: 0 0 0 3px rgba(155,127,212,0.15) !important;
+    letter-spacing: 0.05em;
+  }
+
+  /* Orange checkmark pop */
+  .key-check {
+    position: absolute;
+    right: 54px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+  }
+  .key-check.pop {
+    animation: keyCheckPop 0.55s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes keyCheckPop {
+    0%   { opacity: 0; transform: translateY(-50%) scale(0) rotate(-20deg); }
+    60%  { opacity: 1; transform: translateY(-50%) scale(1.2) rotate(4deg); }
+    100% { opacity: 1; transform: translateY(-50%) scale(1) rotate(0deg); }
+  }
+  .key-check svg { width: 11px; height: 11px; color: white; }
+
+  /* Mode badge under bar */
+  .mode-hint {
+    font-size: 0.7rem;
+    color: var(--muted2);
+    margin-top: 0.6rem;
+    text-align: center;
+    height: 1rem;
+    transition: opacity 0.25s;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .mode-hint.visible { opacity: 1; }
+  .mode-hint .g { color: #b39ddb; }
+  .mode-hint .o { color: var(--accent); }
+
+  /* Swipe track visual cue */
+  .search-bar.ghoul-active { border-color: #b39ddb; box-shadow: 0 0 0 3px rgba(179,157,219,0.1); }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <svg class="logo-mark" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="26" cy="26" r="4.5" fill="#d97757"/>
+    <line x1="26" y1="4" x2="26" y2="14" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="26" y1="38" x2="26" y2="48" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="4" y1="26" x2="14" y2="26" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="38" y1="26" x2="48" y2="26" stroke="#d97757" stroke-width="3" stroke-linecap="round"/>
+    <line x1="10.1" y1="10.1" x2="17.2" y2="17.2" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="34.8" y1="34.8" x2="41.9" y2="41.9" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="41.9" y1="10.1" x2="34.8" y2="17.2" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="17.2" y1="34.8" x2="10.1" y2="41.9" stroke="#d97757" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+  <div class="wordmark">Quik<span>IMG</span></div>
+  <div class="tagline">Exact-match image search. Fast, clean, yours.</div>
+  <div class="search-wrap">
+    <input class="search-bar" id="home-input" type="text" placeholder="Search for anything exactly..." autocomplete="off" spellcheck="false">
+    <!-- Key checkmark badge -->
+    <div class="key-check" id="key-check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <!-- Swipe wrapper -->
+    <div class="search-btn-wrap" id="home-btn-wrap">
+      <!-- Invisible full-width swipe track -->
+      <div class="swipe-track" id="swipe-track"></div>
+      <button class="search-btn" id="home-btn" title="Search or swipe">
+        <span class="btn-icon" id="search-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </span>
+        <svg class="ghoul-sprite" id="ghoul-sprite" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+          <rect x="8"  y="10" width="24" height="18" fill="#d0c4f0"/>
+          <rect x="10" y="6"  width="20" height="6"  fill="#d0c4f0"/>
+          <rect x="12" y="4"  width="16" height="4"  fill="#d0c4f0"/>
+          <rect x="14" y="2"  width="12" height="4"  fill="#d0c4f0"/>
+          <rect x="8"  y="28" width="6"  height="6"  fill="#d0c4f0"/>
+          <rect x="18" y="28" width="6"  height="6"  fill="#d0c4f0"/>
+          <rect x="28" y="28" width="4"  height="6"  fill="#d0c4f0"/>
+          <rect class="ghoul-eye" x="13" y="14" width="5" height="5" fill="#1a1a1a"/>
+          <rect x="14" y="15" width="2" height="2" fill="#6b5ce7"/>
+          <rect class="ghoul-eye" x="22" y="14" width="5" height="5" fill="#1a1a1a"/>
+          <rect x="23" y="15" width="2" height="2" fill="#6b5ce7"/>
+          <rect x="14" y="21" width="2"  height="2" fill="#1a1a1a"/>
+          <rect x="16" y="22" width="8"  height="2" fill="#1a1a1a"/>
+          <rect x="24" y="21" width="2"  height="2" fill="#1a1a1a"/>
+          <rect x="10" y="19" width="4"  height="2" fill="#e8a0c0" opacity="0.7"/>
+          <rect x="26" y="19" width="4"  height="2" fill="#e8a0c0" opacity="0.7"/>
+          <rect x="4"  y="16" width="4"  height="4" fill="#d0c4f0"/>
+          <rect x="32" y="16" width="4"  height="4" fill="#d0c4f0"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="mode-hint" id="mode-hint">← swipe to summon <span class="g">Ghoul</span> · swipe → to return</div>
+  <div class="hint" id="normal-hint">Type <kbd>-quo</kbd> to check your API quota · swipe the button to toggle Ghoul AI</div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div id="results-page">
+  <div class="top-bar">
+    <div class="top-logo" id="back-home">Quik<span>IMG</span></div>
+    <div class="top-search-wrap">
+      <input class="top-search" id="top-input" type="text" autocomplete="off" spellcheck="false">
+      <button class="top-search-btn" id="top-btn" title="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+    </div>
+    <button class="refresh-btn" id="refresh-btn" title="Fresh results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="result-meta" id="result-meta" style="display:none"></div>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="loader-ring"></div>
+    <span>Searching…</span>
+  </div>
+
+  <!-- Msg box -->
+  <div id="msg-box">
+    <div class="icon" id="msg-icon">🔍</div>
+    <div class="title" id="msg-title">No results</div>
+    <div class="sub" id="msg-sub">Try a different search term.</div>
+  </div>
+
+  <!-- Quota card -->
+  <div id="quota-card">
+    <div class="quota-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+      </svg>
+      SerpAPI Quota
+    </div>
+    <div class="quota-row"><span>Plan searches used</span><strong id="q-used">—</strong></div>
+    <div class="quota-bar-bg"><div class="quota-bar-fill" id="q-bar" style="width:0%"></div></div>
+    <div class="quota-row"><span>Searches remaining</span><strong id="q-rem">—</strong></div>
+    <div class="quota-row"><span>Total limit</span><strong id="q-total">—</strong></div>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const SERP_API_KEY = 'f0b1924867c5120ad474a883e983b2dee94f0d94f649e7fe431c6e46c542956c';
+const PROXY        = 'https://corsproxy.io/?url=https://serpapi.com/search.json';
+
+let currentQuery = '';
+let usedStartValues = [];
+let lastResults    = [];
+
+// ── UTILS ──────────────────────────────────────────────────────────
+function isWebP(url) {
+  return url && url.toLowerCase().includes('.webp');
+}
+
+async function urlToCanvas(url) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth || img.width;
+      c.height = img.naturalHeight || img.height;
+      c.getContext('2d').drawImage(img, 0, 0);
+      res(c);
+    };
+    img.onerror = rej;
+    img.src = url;
+  });
+}
+
+async function downloadAsPNG(src, filename) {
+  try {
+    const canvas = await urlToCanvas(src);
+    canvas.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }, 'image/png');
+  } catch {
+    // fallback: just download original
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = filename;
+    a.target = '_blank';
+    a.click();
+  }
+}
+
+// ── DOUBLE-TAP / DOUBLE-CLICK ──────────────────────────────────────
+function addDoubleTap(el, cb) {
+  let last = 0;
+  el.addEventListener('click', e => {
+    const now = Date.now();
+    if (now - last < 350) cb(e);
+    last = now;
+  });
+}
+
+// ── SERPAPI CALL ───────────────────────────────────────────────────
+async function fetchImages(query, start = 0) {
+  const params = new URLSearchParams({
+    engine: 'google_images',
+    q: `"${query}"`,          // exact match
+    num: 10,
+    start,
+    api_key: SERP_API_KEY,
+    safe: 'active',
+    ijn: Math.floor(start / 10)
+  });
+  const r = await fetch(`${PROXY}?${params}`);
+  if (!r.ok) throw new Error(`API ${r.status}`);
+  return r.json();
+}
+
+async function fetchQuota() {
+  const r = await fetch(`${PROXY}?engine=google&q=test&api_key=${SERP_API_KEY}&num=1`);
+  const d = await r.json();
+  return d.search_metadata || {};
+}
+
+// ── RENDER GRID ────────────────────────────────────────────────────
+function renderGrid(images) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if (!images.length) { showMsg('🔍', 'No results', 'Try a different term.'); return; }
+
+  images.forEach((img, i) => {
+    const card = document.createElement('div');
+    card.className = 'img-card';
+    card.style.animationDelay = `${i * 40}ms`;
+
+    const webp = isWebP(img.original);
+    const typeLabel = webp ? 'WEBP → PNG' : (img.original?.split('.').pop()?.toUpperCase().slice(0,4) || 'IMG');
+
+    card.innerHTML = `
+      <img src="${img.thumbnail}" loading="lazy" alt="${img.title || ''}">
+      <div class="overlay">
+        <span class="img-type-badge">${typeLabel}</span>
+      </div>
+      <div class="cog-overlay" id="cog-${i}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06
+            a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09
+            A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83
+            l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+            A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83
+            l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09
+            a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83
+            l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+            a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span class="cog-label">Converting…</span>
+      </div>`;
+
+    addDoubleTap(card, async () => {
+      const cog = document.getElementById(`cog-${i}`);
+      cog.classList.add('active');
+      const src = img.original || img.thumbnail;
+      const base = (img.title || currentQuery).replace(/[^a-z0-9]/gi, '_').slice(0, 40) || 'image';
+      await downloadAsPNG(src, `${base}.png`);
+      setTimeout(() => cog.classList.remove('active'), 800);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// ── SHOW MSG ───────────────────────────────────────────────────────
+function showMsg(icon, title, sub) {
+  document.getElementById('msg-icon').textContent = icon;
+  document.getElementById('msg-title').textContent = title;
+  document.getElementById('msg-sub').textContent = sub;
+  document.getElementById('msg-box').style.display = 'flex';
+}
+
+// ── SEARCH FLOW ────────────────────────────────────────────────────
+async function search(query, forceRefresh = false) {
+  query = query.trim();
+  if (!query) return;
+  currentQuery = query;
+
+  // Show results page
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('results-page').style.display = 'flex';
+  document.getElementById('quota-card').style.display = 'none';
+  document.getElementById('msg-box').style.display = 'none';
+  document.getElementById('grid').innerHTML = '';
+  document.getElementById('result-meta').style.display = 'none';
+
+  // -quo special command
+  if (query === '-quo') {
+    document.getElementById('top-input').value = '-quo';
+    document.getElementById('loading').style.display = 'flex';
+    try {
+      const meta = await fetchQuota();
+      document.getElementById('loading').style.display = 'none';
+      showQuota(meta);
+    } catch (e) {
+      document.getElementById('loading').style.display = 'none';
+      showMsg('⚠️', 'Quota fetch failed', e.message);
+    }
+    return;
+  }
+
+  document.getElementById('top-input').value = query;
+
+  // pick a fresh start offset
+  let start = 0;
+  if (forceRefresh) {
+    let candidate;
+    let tries = 0;
+    do {
+      candidate = Math.floor(Math.random() * 9) * 10;
+      tries++;
+    } while (usedStartValues.includes(candidate) && tries < 20);
+    start = candidate;
+    usedStartValues.push(start);
+    if (usedStartValues.length > 15) usedStartValues = usedStartValues.slice(-8);
+  }
+
+  document.getElementById('loading').style.display = 'flex';
+
+  try {
+    const data = await fetchImages(query, start);
+    document.getElementById('loading').style.display = 'none';
+    const imgs = data.images_results || [];
+    lastResults = imgs;
+
+    const meta = document.getElementById('result-meta');
+    meta.style.display = 'block';
+    meta.innerHTML = `Showing <strong>${imgs.length}</strong> exact results for <strong>"${query}"</strong>`;
+
+    renderGrid(imgs);
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    showMsg('⚠️', 'Search failed', e.message);
+  }
+}
+
+// ── QUOTA DISPLAY ──────────────────────────────────────────────────
+function showQuota(meta) {
+  const card = document.getElementById('quota-card');
+  card.style.display = 'flex';
+
+  const used  = meta.searches_left !== undefined ? (100 - meta.searches_left) : '—';
+  const rem   = meta.searches_left ?? '—';
+  const total = typeof used === 'number' && typeof rem === 'number' ? used + rem : 100;
+  const pct   = total > 0 && typeof used === 'number' ? Math.round((used / total) * 100) : 0;
+
+  document.getElementById('q-used').textContent  = typeof used  === 'number' ? used  : '—';
+  document.getElementById('q-rem').textContent   = typeof rem   === 'number' ? rem   : '—';
+  document.getElementById('q-total').textContent = typeof total === 'number' ? total : '—';
+  setTimeout(() => { document.getElementById('q-bar').style.width = pct + '%'; }, 50);
+}
+
+// ── EVENTS ─────────────────────────────────────────────────────────
+function triggerSearch(forceRefresh = false) {
+  const q = document.getElementById('results-page').style.display !== 'none'
+    ? document.getElementById('top-input').value
+    : document.getElementById('home-input').value;
+  search(q, forceRefresh);
+}
+
+document.getElementById('home-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (ghoulState === GhoulState.KEY) {
+      saveKeyIfEntered();
+    } else if (ghoulState === GhoulState.GHOUL) {
+      handleGhoulSearch(e.target.value);
+    } else {
+      search(e.target.value);
+    }
+  }
+});
+// home-btn handled via swipe system (initGhoul)
+
+document.getElementById('top-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') search(e.target.value);
+});
+document.getElementById('top-btn').addEventListener('click', () => {
+  search(document.getElementById('top-input').value);
+});
+
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  setTimeout(() => btn.classList.remove('spinning'), 600);
+  search(document.getElementById('top-input').value, true);
+});
+
+document.getElementById('back-home').addEventListener('click', () => {
+  document.getElementById('results-page').style.display = 'none';
+  document.getElementById('home').style.display = 'flex';
+  document.getElementById('home-input').value = '';
+  document.getElementById('home-input').focus();
+});
+
+// focus on load
+window.addEventListener('load', () => {
+  document.getElementById('home-input').focus();
+  initGhoul();
+});
+
+/* ════════════════════════════════════════════════════════════════
+   GHOUL SYSTEM
+   ════════════════════════════════════════════════════════════════ */
+
+// ── State ──
+const GhoulState = {
+  NORMAL:  'normal',   // regular search
+  GHOUL:   'ghoul',    // Ghoul AI mode
+  KEY:     'key',      // key entry mode (hold in ghoul)
+};
+let ghoulState = GhoulState.NORMAL;
+let groqKey    = localStorage.getItem('ghoul_groq_key') || '';
+
+// ── Placeholder morphing ──
+let placeholderTimeout = null;
+function morphPlaceholder(input, newText) {
+  clearTimeout(placeholderTimeout);
+  input.classList.remove('placeholder-morph');
+  // Force reflow
+  void input.offsetWidth;
+  // Fade out via style
+  input.style.setProperty('--ph-opacity', '0');
+  placeholderTimeout = setTimeout(() => {
+    input.placeholder = newText;
+    input.classList.add('placeholder-morph');
+    // Clean up
+    setTimeout(() => input.classList.remove('placeholder-morph'), 400);
+  }, 180);
+}
+
+// We'll handle placeholder morph with a CSS trick + quick fade
+function setPlaceholder(input, text) {
+  // Quick two-step: fade style on the input itself via a wrapper
+  input.style.transition = 'opacity 0.15s';
+  input.style.opacity = '0.4';
+  setTimeout(() => {
+    input.placeholder = text;
+    input.style.opacity = '1';
+  }, 160);
+}
+
+// ── Mode switching ──
+function enterGhoulMode() {
+  if (ghoulState === GhoulState.GHOUL) return;
+  ghoulState = GhoulState.GHOUL;
+  const btn    = document.getElementById('home-btn');
+  const icon   = document.getElementById('search-icon');
+  const ghoul  = document.getElementById('ghoul-sprite');
+  const input  = document.getElementById('home-input');
+  const hint   = document.getElementById('mode-hint');
+  const nhint  = document.getElementById('normal-hint');
+
+  btn.classList.add('ghoul-mode');
+  icon.classList.add('hidden');
+  ghoul.classList.add('visible');
+  input.classList.add('ghoul-active');
+
+  setPlaceholder(input, 'What should Ghoul search?');
+  hint.innerHTML = 'hold to enter <span class="g">Groq key</span> · swipe → to go back';
+  hint.classList.add('visible');
+  nhint.style.opacity = '0';
+}
+
+function exitGhoulMode() {
+  if (ghoulState === GhoulState.NORMAL) return;
+  ghoulState = GhoulState.NORMAL;
+  const btn   = document.getElementById('home-btn');
+  const icon  = document.getElementById('search-icon');
+  const ghoul = document.getElementById('ghoul-sprite');
+  const input = document.getElementById('home-input');
+  const hint  = document.getElementById('mode-hint');
+  const nhint = document.getElementById('normal-hint');
+
+  btn.classList.remove('ghoul-mode');
+  icon.classList.remove('hidden');
+  ghoul.classList.remove('visible');
+  input.classList.remove('ghoul-active');
+  input.classList.remove('key-mode');
+
+  setPlaceholder(input, 'Search for anything exactly...');
+  hint.classList.remove('visible');
+  nhint.style.opacity = '1';
+}
+
+function enterKeyMode() {
+  ghoulState = GhoulState.KEY;
+  const input = document.getElementById('home-input');
+  const hint  = document.getElementById('mode-hint');
+  input.classList.add('key-mode');
+  input.value = '';
+  setPlaceholder(input, 'What am I? (paste Groq API key)');
+  hint.innerHTML = 'hold again to go back · key auto-saves';
+
+  // pre-fill if we have one
+  if (groqKey) {
+    setTimeout(() => { input.value = groqKey; }, 200);
+  }
+  input.focus();
+}
+
+function exitKeyMode() {
+  ghoulState = GhoulState.GHOUL;
+  const input = document.getElementById('home-input');
+  const hint  = document.getElementById('mode-hint');
+  input.classList.remove('key-mode');
+  input.value = '';
+  setPlaceholder(input, 'What should Ghoul search?');
+  hint.innerHTML = 'hold to enter <span class="g">Groq key</span> · swipe → to go back';
+}
+
+// ── Orange checkmark pop ──
+function popCheckmark() {
+  const ck = document.getElementById('key-check');
+  ck.classList.remove('pop');
+  void ck.offsetWidth;
+  ck.classList.add('pop');
+  setTimeout(() => ck.classList.remove('pop'), 700);
+}
+
+// ── Save key from input ──
+function saveKeyIfEntered() {
+  const input = document.getElementById('home-input');
+  const val   = input.value.trim();
+  if (val && val.startsWith('gsk_')) {
+    groqKey = val;
+    localStorage.setItem('ghoul_groq_key', groqKey);
+    popCheckmark();
+    setTimeout(() => exitKeyMode(), 800);
+    return true;
+  } else if (val && val.length > 20) {
+    // Accept any key-like string (Groq keys vary)
+    groqKey = val;
+    localStorage.setItem('ghoul_groq_key', groqKey);
+    popCheckmark();
+    setTimeout(() => exitKeyMode(), 800);
+    return true;
+  }
+  return false;
+}
+
+// ── Groq: build clean search query ──
+async function groqBuildQuery(userInput) {
+  if (!groqKey) return userInput.trim();
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${groqKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a search query optimizer for an image search engine. 
+Your job: take the user's natural language input and output a clean, precise 2-5 word image search query.
+Rules:
+- Remove filler words, emojis, punctuation, hype words
+- Keep it specific and descriptive
+- Output ONLY the query, nothing else, no quotes, no explanation
+- Examples: "show me cool sunset photos!!" → "golden hour sunset photography"
+  "I want pics of a fluffy orange cat doing funny stuff" → "fluffy orange cat playful"
+  "give me some aesthetic rainy Tokyo street photos 🌧️✨" → "rainy Tokyo street night"
+  "what does a mantis shrimp look like??" → "mantis shrimp close-up"`
+          },
+          { role: 'user', content: userInput }
+        ],
+        max_tokens: 30,
+        temperature: 0.3
+      })
+    });
+    if (!res.ok) throw new Error('Groq API error');
+    const data = await res.json();
+    const query = data.choices?.[0]?.message?.content?.trim() || userInput;
+    return query;
+  } catch (e) {
+    console.warn('Groq query build failed, using raw input:', e);
+    return userInput.trim();
+  }
+}
+
+// ── Handle search submission ──
+async function handleGhoulSearch(rawInput) {
+  if (!rawInput.trim()) return;
+
+  const input = document.getElementById('home-input');
+
+  if (ghoulState === GhoulState.KEY) {
+    // Try to save key first
+    if (!saveKeyIfEntered()) {
+      // Nothing valid entered
+      input.focus();
+    }
+    return;
+  }
+
+  if (ghoulState === GhoulState.GHOUL) {
+    if (!groqKey) {
+      // No key yet — nudge to enter one
+      const hint = document.getElementById('mode-hint');
+      hint.innerHTML = '👻 hold the button to add your <span class="g">Groq key</span> first';
+      setTimeout(() => {
+        hint.innerHTML = 'hold to enter <span class="g">Groq key</span> · swipe → to go back';
+      }, 2500);
+      return;
+    }
+    // Build Groq query then search
+    const hint = document.getElementById('mode-hint');
+    hint.innerHTML = '<span class="g">Ghoul</span> is thinking…';
+    const cleanQuery = await groqBuildQuery(rawInput);
+    hint.innerHTML = `searching for: <span class="o">"${cleanQuery}"</span>`;
+    setTimeout(() => {
+      hint.innerHTML = 'hold to enter <span class="g">Groq key</span> · swipe → to go back';
+    }, 3000);
+    search(cleanQuery);
+    return;
+  }
+
+  // Normal mode
+  search(rawInput);
+}
+
+// ── SWIPE MECHANIC ──
+function initGhoul() {
+  // track = full-width invisible swipe zone over the input bar
+  const track = document.getElementById('swipe-track');
+  const btn   = document.getElementById('home-btn');
+  const input = document.getElementById('home-input');
+
+  const SWIPE_THRESHOLD = 60;   // px across the bar to trigger mode change
+  const MAX_DRAG        = 120;  // max visual drag on the button
+  let   startX          = null;
+  let   startY          = null;
+  let   isDragging      = false;
+  let   dragDx          = 0;
+  let   holdTimer       = null;
+  let   holdFired       = false;
+  const HOLD_MS         = 550;
+
+  function onTrackStart(x, y) {
+    // Only intercept if pointer is on the track area (not on the input text area directly)
+    startX     = x;
+    startY     = y;
+    isDragging = false;
+    dragDx     = 0;
+    holdFired  = false;
+  }
+
+  function onBtnStart(x, y) {
+    startX     = x;
+    startY     = y;
+    isDragging = false;
+    dragDx     = 0;
+    holdFired  = false;
+
+    // Hold timer only fires from the button itself
+    holdTimer = setTimeout(() => {
+      holdFired = true;
+      if (ghoulState === GhoulState.GHOUL) {
+        enterKeyMode();
+      } else if (ghoulState === GhoulState.KEY) {
+        if (!saveKeyIfEntered()) exitKeyMode();
+      }
+    }, HOLD_MS);
+  }
+
+  function onMove(x, y) {
+    if (startX === null) return;
+    const dx = x - startX;
+    const dy = y - startY;
+
+    // Cancel hold if moved
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+      clearTimeout(holdTimer);
+    }
+
+    if (Math.abs(dx) < 4) return;
+
+    isDragging = true;
+    dragDx = Math.max(-MAX_DRAG, Math.min(MAX_DRAG, dx));
+
+    // Rubber-band the button visually
+    const pull = Math.sign(dragDx) * Math.pow(Math.abs(dragDx), 0.7);
+    const tilt = pull * 0.18;
+    btn.style.transform = `translateY(-50%) translateX(${pull}px) rotate(${tilt}deg)`;
+    btn.classList.add('dragging');
+  }
+
+  function onEnd() {
+    clearTimeout(holdTimer);
+    if (startX === null) return;
+
+    btn.classList.remove('dragging');
+
+    if (!isDragging && !holdFired) {
+      // Pure tap on the track (not on button) — focus the input
+      btn.style.transform = 'translateY(-50%)';
+      input.focus();
+    } else if (isDragging) {
+      if (dragDx < -SWIPE_THRESHOLD && ghoulState === GhoulState.NORMAL) {
+        // Swipe left => Ghoul
+        btn.style.transition = 'transform 0.42s cubic-bezier(.34,1.56,.64,1)';
+        btn.style.transform  = 'translateY(-50%) translateX(0) rotate(-6deg)';
+        setTimeout(() => {
+          btn.style.transition = '';
+          btn.style.transform  = 'translateY(-50%)';
+        }, 460);
+        enterGhoulMode();
+      } else if (dragDx > SWIPE_THRESHOLD && ghoulState !== GhoulState.NORMAL) {
+        // Swipe right => Normal
+        btn.style.transition = 'transform 0.38s cubic-bezier(.34,1.56,.64,1)';
+        btn.style.transform  = 'translateY(-50%) translateX(0)';
+        setTimeout(() => {
+          btn.style.transition = '';
+          btn.style.transform  = 'translateY(-50%)';
+        }, 420);
+        exitGhoulMode();
+      } else {
+        // Didn't reach threshold — snap back
+        btn.style.transition = 'transform 0.3s cubic-bezier(.34,1.56,.64,1)';
+        btn.style.transform  = 'translateY(-50%)';
+        setTimeout(() => { btn.style.transition = ''; }, 320);
+      }
+    }
+
+    startX = startY = null;
+    isDragging = false;
+    dragDx     = 0;
+  }
+
+  function onBtnClick(e) {
+    if (isDragging || holdFired) return;
+    e.stopPropagation();
+    if (ghoulState === GhoulState.KEY) {
+      saveKeyIfEntered();
+      return;
+    }
+    const val = input.value.trim();
+    if (!val) { input.focus(); return; }
+    handleGhoulSearch(val);
+  }
+
+  // ── Track events (full input bar swipe zone) ──
+  track.addEventListener('mousedown', e => {
+    // Don't intercept clicks on the button itself
+    if (e.target === btn || btn.contains(e.target)) return;
+    onTrackStart(e.clientX, e.clientY);
+  });
+
+  // ── Button events (hold + tap + drag starting from button) ──
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault();
+    onBtnStart(e.clientX, e.clientY);
+  });
+  btn.addEventListener('click', onBtnClick);
+
+  // Global move/up for both
+  window.addEventListener('mousemove', e => { if (startX !== null) onMove(e.clientX, e.clientY); });
+  window.addEventListener('mouseup',   ()  => onEnd());
+
+  // Touch on track
+  track.addEventListener('touchstart', e => {
+    if (e.target === btn || btn.contains(e.target)) return;
+    const t = e.touches[0];
+    onTrackStart(t.clientX, t.clientY);
+  }, { passive: true });
+
+  // Touch on button
+  btn.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    onBtnStart(t.clientX, t.clientY);
+  }, { passive: true });
+
+  // Global touch move/end
+  window.addEventListener('touchmove', e => {
+    if (startX === null) return;
+    const t = e.touches[0];
+    onMove(t.clientX, t.clientY);
+  }, { passive: true });
+  window.addEventListener('touchend', () => onEnd());
+
+  // If we already have a Groq key saved, show the indicator
+  if (groqKey) {
+    const hint = document.getElementById('normal-hint');
+    hint.innerHTML = `Type <kbd>-quo</kbd> to check quota · Ghoul ready <span style="color:var(--accent)">●</span>`;
+  }
+}
+</script>
+</body>
+</html>
